@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Kuldeep Hospital</title>
+
+<style>
+body {
+  font-family: Arial;
+  margin:0;
+  background:linear-gradient(to right,#36d1dc,#5b86e5);
+}
+
+/* LOGIN */
+.login-box {
+  width:300px;
+  margin:100px auto;
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
+}
+
+input,select {
+  width:90%;
+  padding:8px;
+  margin:5px;
+}
+
+button {
+  padding:6px;
+  margin:5px;
+  cursor:pointer;
+}
+
+.main {
+  display:none;
+  text-align:center;
+}
+
+.box {
+  background:white;
+  padding:20px;
+  width:750px;
+  margin:20px auto;
+  border-radius:10px;
+}
+
+table {
+  width:100%;
+  margin-top:10px;
+  border-collapse:collapse;
+}
+td,th {
+  border:1px solid black;
+  padding:5px;
+}
+
+.del { background:red; color:white; }
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login-box" id="loginBox">
+  <h2>Login</h2>
+  <input id="user" placeholder="Username"><br>
+  <input id="pass" type="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+</div>
+
+<!-- MAIN APP -->
+<div class="main" id="mainApp">
+
+<div class="box">
+
+<h2>🏥 Kuldeep Hospital</h2>
+
+<button onclick="logout()">Logout</button><br>
+
+<input id="search" placeholder="Search patient" onkeyup="searchPatient()"><br>
+
+<input id="name" placeholder="Enter name"><br>
+
+<select id="dept">
+<option value="OPD">Fever</option>
+<option value="XRAY">X-ray</option>
+<option value="LAB">Blood</option>
+</select><br>
+
+<button onclick="addPatient()">Add</button>
+
+<h3>OPD</h3>
+<h4 id="opdCurrent">Current: None</h4>
+<button onclick="next('OPD')">Next</button>
+<table>
+<tr><th>Name</th><th>Token</th><th>Time</th><th>Action</th></tr>
+<tbody id="opd"></tbody>
+</table>
+
+<h3>XRAY</h3>
+<h4 id="xrayCurrent">Current: None</h4>
+<button onclick="next('XRAY')">Next</button>
+<table>
+<tr><th>Name</th><th>Token</th><th>Time</th><th>Action</th></tr>
+<tbody id="xray"></tbody>
+</table>
+
+<h3>LAB</h3>
+<h4 id="labCurrent">Current: None</h4>
+<button onclick="next('LAB')">Next</button>
+<table>
+<tr><th>Name</th><th>Token</th><th>Time</th><th>Action</th></tr>
+<tbody id="lab"></tbody>
+</table>
+
+</div>
+</div>
+
+<script>
+
+// LOGIN CHECK
+if(localStorage.getItem("login") === "true"){
+  showApp();
+}
+
+function login(){
+  let u = document.getElementById("user").value;
+  let p = document.getElementById("pass").value;
+
+  if(u==="admin" && p==="1234"){
+    localStorage.setItem("login","true");
+    showApp();
+  } else {
+    alert("Wrong login");
+  }
+}
+
+function logout(){
+  localStorage.removeItem("login");
+  location.reload();
+}
+
+function showApp(){
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("mainApp").style.display="block";
+}
+
+// DATA
+let patients = JSON.parse(localStorage.getItem("patients")) || [];
+
+let counter = JSON.parse(localStorage.getItem("counter")) || {
+  OPD:1,
+  XRAY:1,
+  LAB:1
+};
+
+function save(){
+  localStorage.setItem("patients", JSON.stringify(patients));
+  localStorage.setItem("counter", JSON.stringify(counter));
+}
+
+// ADD
+function addPatient(){
+  let name = document.getElementById("name").value.trim();
+  let dept = document.getElementById("dept").value;
+
+  if(name===""){
+    alert("Enter name");
+    return;
+  }
+
+  let token = dept + counter[dept]++;
+  let time = new Date().toLocaleTimeString();
+
+  patients.push({name,dept,token,time});
+  document.getElementById("name").value="";
+
+  save();
+  show();
+}
+
+// DELETE
+function deletePatient(i){
+  patients.splice(i,1);
+  save();
+  show();
+}
+
+// NEXT
+function next(dept){
+  let index = patients.findIndex(p => p.dept===dept);
+
+  if(index===-1) return;
+
+  let p = patients.splice(index,1)[0];
+
+  if(dept==="OPD") document.getElementById("opdCurrent").innerText="Current: "+p.name+" ("+p.token+")";
+  if(dept==="XRAY") document.getElementById("xrayCurrent").innerText="Current: "+p.name+" ("+p.token+")";
+  if(dept==="LAB") document.getElementById("labCurrent").innerText="Current: "+p.name+" ("+p.token+")";
+
+  save();
+  show();
+}
+
+// SHOW
+function show(list=patients){
+  let opd="", xray="", lab="";
+
+  list.forEach((p,i)=>{
+    let row = `<tr>
+      <td>${p.name}</td>
+      <td>${p.token}</td>
+      <td>${p.time}</td>
+      <td><button class="del" onclick="deletePatient(${i})">X</button></td>
+    </tr>`;
+
+    if(p.dept==="OPD") opd+=row;
+    if(p.dept==="XRAY") xray+=row;
+    if(p.dept==="LAB") lab+=row;
+  });
+
+  document.getElementById("opd").innerHTML=opd;
+  document.getElementById("xray").innerHTML=xray;
+  document.getElementById("lab").innerHTML=lab;
+}
+
+// SEARCH
+function searchPatient(){
+  let s = document.getElementById("search").value.toLowerCase();
+  let filtered = patients.filter(p => p.name.toLowerCase().includes(s));
+  show(filtered);
+}
+
+show();
+
+</script>
+
+</body>
+</html>
