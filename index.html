@@ -6,69 +6,150 @@
   <style>
     body {
       font-family: Arial;
-      text-align: center;
+      margin: 0;
       background: linear-gradient(to right, #36d1dc, #5b86e5);
+      text-align: center;
     }
 
     .box {
       background: white;
       padding: 20px;
-      margin: 50px auto;
-      width: 300px;
+      margin: 40px auto;
+      width: 320px;
       border-radius: 10px;
     }
 
-    input {
+    input, select {
       width: 90%;
       padding: 10px;
-      margin: 10px;
+      margin: 8px;
     }
 
     button {
       padding: 10px 20px;
-      background: green;
-      color: white;
+      margin: 5px;
       border: none;
+      color: white;
+      background: green;
+    }
+
+    table {
+      width: 90%;
+      margin: auto;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- LOGIN -->
-  <div class="box" id="loginBox">
-    <h2>Login</h2>
-    <input type="text" id="user" placeholder="Username"><br>
-    <input type="password" id="pass" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
-  </div>
+<!-- LOGIN -->
+<div class="box" id="loginBox">
+  <h2>Login</h2>
+  <input type="text" id="user" placeholder="Username">
+  <input type="password" id="pass" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
 
-  <!-- APP -->
-  <div class="box" id="appBox" style="display:none;">
-    
-  </div><div id="appBox" style="display:none;">
+<!-- APP -->
+<div id="appBox" style="display:none;">
 
-  <!-- Yaha apna original app code -->
   <h2>Kuldeep Hospital</h2>
 
-  <input type="text" placeholder="Enter name">
-  <button>Add</button>
+  <input type="text" id="name" placeholder="Enter name">
+
+  <select id="dept">
+    <option>OPD</option>
+    <option>XRAY</option>
+    <option>LAB</option>
+  </select>
+
+  <button onclick="addPatient()">Add</button>
+
+  <h3>Current: <span id="current">None</span></h3>
+
+  <button onclick="nextPatient()">Next</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Dept</th>
+        <th>Token</th>
+      </tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
 
 </div>
 
-  <script>
-    function login() {
-      let u = document.getElementById("user").value;
-      let p = document.getElementById("pass").value;
+<script>
 
-      if (u === "admin" && p === "1234") {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("appBox").style.display = "block";
-      } else {
-        alert("Wrong username or password");
-      }
-    }
-  </script>
+let token = 1;
+let queue = [];
+
+// LOGIN
+function login() {
+  let u = document.getElementById("user").value;
+  let p = document.getElementById("pass").value;
+
+  if (u === "admin" && p === "1234") {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("appBox").style.display = "block";
+  } else {
+    alert("Wrong username or password");
+  }
+}
+
+// ADD PATIENT
+function addPatient() {
+  let name = document.getElementById("name").value;
+  let dept = document.getElementById("dept").value;
+
+  if (name === "") {
+    alert("Enter name");
+    return;
+  }
+
+  queue.push({name, dept, token});
+  token++;
+
+  showList();
+  document.getElementById("name").value = "";
+}
+
+// SHOW LIST
+function showList() {
+  let list = document.getElementById("list");
+  list.innerHTML = "";
+
+  queue.forEach(p => {
+    list.innerHTML += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.dept}</td>
+        <td>${p.token}</td>
+      </tr>
+    `;
+  });
+}
+
+// NEXT PATIENT
+function nextPatient() {
+  if (queue.length === 0) return;
+
+  let p = queue.shift();
+  document.getElementById("current").innerText = p.name;
+
+  showList();
+}
+
+</script>
 
 </body>
 </html>
