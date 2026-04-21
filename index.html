@@ -86,6 +86,14 @@ th, td {
 let token = 1;
 let queue = [];
 
+// 🔥 LOAD SAVED DATA
+let saved = localStorage.getItem("patients");
+if(saved){
+  queue = JSON.parse(saved);
+  token = queue.length + 1;
+}
+
+// LOGIN
 function login(){
 let u=document.getElementById("user").value;
 let p=document.getElementById("pass").value;
@@ -93,11 +101,13 @@ let p=document.getElementById("pass").value;
 if(u==="admin" && p==="1234"){
 document.getElementById("loginBox").style.display="none";
 document.getElementById("appBox").style.display="block";
+showList();
 }else{
 alert("Wrong username or password");
 }
 }
 
+// ADD PATIENT
 function addPatient(){
 let name=document.getElementById("name").value;
 let dept=document.getElementById("dept").value;
@@ -110,10 +120,14 @@ return;
 queue.push({name,dept,token});
 token++;
 
+// SAVE DATA
+localStorage.setItem("patients", JSON.stringify(queue));
+
 showList();
 document.getElementById("name").value="";
 }
 
+// SHOW LIST
 function showList(){
 let list=document.getElementById("list");
 list.innerHTML="";
@@ -129,11 +143,15 @@ list.innerHTML+=`
 });
 }
 
+// NEXT PATIENT
 function nextPatient(){
 if(queue.length===0) return;
 
 let p=queue.shift();
 document.getElementById("current").innerText=p.name;
+
+// SAVE DATA
+localStorage.setItem("patients", JSON.stringify(queue));
 
 showList();
 }
